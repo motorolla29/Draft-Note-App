@@ -5,7 +5,7 @@ import PostStatusFilter from '../post-status-filter';
 import PostList from '../post-list';
 import PostAddForm from '../post-add-form';
 import './app.css';
-import styled from 'styled-components';
+// import styled from 'styled-components';
 
 export default class App extends Component {
   constructor(props) {
@@ -16,11 +16,15 @@ export default class App extends Component {
         { label: 'That is so good', important: false, like: false, id: 2 },
         { label: 'I need a break...', important: false, like: false, id: 3 },
       ],
+      term: '',
     };
     this.deleteItem = this.deleteItem.bind(this);
     this.addItem = this.addItem.bind(this);
     this.onToggleImportant = this.onToggleImportant.bind(this);
     this.onToggleLiked = this.onToggleLiked.bind(this);
+    this.onUpdateSearch = this.onUpdateSearch.bind(this);
+
+    this.maxId = 4;
   }
 
   deleteItem(id) {
@@ -82,35 +86,51 @@ export default class App extends Component {
     });
   }
 
+  searchPost(items, term) {
+    if (term.length === 0) {
+      return items;
+    }
+
+    return items.filter((item) => {
+      return item.label.toLowerCase().indexOf(term.toLowerCase()) > -1;
+    });
+  }
+
+  onUpdateSearch(term) {
+    this.setState({ term });
+  }
+
   render() {
-    const { data } = this.state;
+    const { data, term } = this.state;
     const liked = data.filter((item) => item.like).length;
     const allPosts = data.length;
 
-    const AppBlock = styled.div`
-      margin: 0 auto;
-      max-width: 800px;
-    `;
+    const visiblePosts = this.searchPost(data, term);
+
+    // const AppBlock = styled.div`
+    //   margin: 0 auto;
+    //   max-width: 800px;
+    // `;
 
     // const StyledAppBlock = styled(AppBlock)`
     //   background-color: grey;
     // `;
 
     return (
-      <AppBlock>
+      <div className="app">
         <AppHeader liked={liked} allPosts={allPosts} />
         <div className="search-panel d-flex">
-          <SearchPanel />
+          <SearchPanel onUpdateSearch={this.onUpdateSearch} />
           <PostStatusFilter />
         </div>
         <PostList
+          posts={visiblePosts}
           onDelete={this.deleteItem}
-          posts={this.state.data}
           onToggleImportant={this.onToggleImportant}
           onToggleLiked={this.onToggleLiked}
         />
         <PostAddForm onAdd={this.addItem} />
-      </AppBlock>
+      </div>
     );
   }
 }
